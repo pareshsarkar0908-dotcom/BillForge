@@ -197,9 +197,9 @@ const tools = {
 };
 
 const appConfig = {
-  supabaseUrl: "https://YOUR_PROJECT_ID.supabase.co",
-  supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY",
-  razorpayKeyId: "YOUR_RAZORPAY_KEY_ID",
+  supabaseUrl: "https://fhujjvzvxuoavvrfagig.supabase.co",
+  supabaseAnonKey: "sb_publishable_GUf4lU_mVI2N4u25chRa1w_xQzA1Cmz",
+  razorpayKeyId: "rzp_live_SvxaS8NNrTTmVP",
   // Production note: create Razorpay orders on a secure backend or Supabase Edge Function.
   createOrderEndpoint: "/api/create-razorpay-order",
 };
