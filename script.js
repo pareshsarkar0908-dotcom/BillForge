@@ -198,7 +198,7 @@ const tools = {
 
 const appConfig = {
   supabaseUrl: "https://fhujjvzvxuoavvrfagig.supabase.co",
-  supabaseAnonKey: "sb_publishable_GUf4lU_mVI2N4u25chRa1w_xQzA1Cmz",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZodWpqdnp2eHVvYXZ2cmZhZ2lnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTM2MTksImV4cCI6MjA5NTg2OTYxOX0.bkTCR0b5Jr2nCjyKZJBLHuqsWOPvQ2vY2RoD0JS7KKw",
   razorpayKeyId: "rzp_live_SvxaS8NNrTTmVP",
   createOrderEndpoint: "/api/create-razorpay-order",
   verifyPaymentEndpoint: "/api/verify-razorpay-payment",
