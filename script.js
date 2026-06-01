@@ -583,20 +583,51 @@ function clearSupabaseStorage() {
   Object.keys(sessionStorage).forEach(key => { if (key.startsWith("sb-")) sessionStorage.removeItem(key); });
 }
 function showPasswordResetForm() {
-  showPage("login");
-  document.querySelector("#loginPanel").innerHTML = `
-    <p class="eyebrow">Password reset</p>
-    <h1>Set New Password</h1>
-    <p>Enter your new password below.</p>
-    <div class="auth-form">
-      <label>New Password
-        <input id="newPassword" type="password" minlength="6" placeholder="••••••••" />
-      </label>
-      <button class="primary-btn" type="button" id="updatePasswordBtn">Update Password</button>
-    </div>
-    <p id="authMessage" class="auth-message"></p>
-  `;
+  // Hide all pages, show a full-screen reset page
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+
+  // Create a dedicated reset page if it doesn't exist
+  let resetPage = document.querySelector("#resetPasswordPage");
+  if (!resetPage) {
+    resetPage = document.createElement("div");
+    resetPage.id = "resetPasswordPage";
+    resetPage.style.cssText = "min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;";
+    resetPage.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:900px;width:100%;align-items:center;">
+        <div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:40px;box-shadow:var(--shadow);">
+          <p class="eyebrow" style="color:var(--accent);font-weight:900;letter-spacing:0.08em;margin-bottom:8px;">RESET PASSWORD</p>
+          <h1 style="font-size:2.2rem;margin:0 0 10px;">Create new password.</h1>
+          <p style="color:var(--muted);margin-bottom:28px;">Enter a new password for your BillForge account.</p>
+          <label style="display:block;font-size:0.78rem;font-weight:900;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;color:var(--muted);">NEW PASSWORD</label>
+          <input id="newPassword" type="password" minlength="6" placeholder="••••••••"
+            style="width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:8px;font-size:1rem;margin-bottom:20px;box-sizing:border-box;" />
+          <button id="updatePasswordBtn" class="primary-btn" type="button"
+            style="width:100%;padding:14px;font-size:1rem;border-radius:8px;">
+            Update password
+          </button>
+          <p id="authMessage" class="auth-message" style="margin-top:14px;font-weight:700;"></p>
+        </div>
+        <div style="background:var(--navy);border-radius:14px;padding:40px;color:#fff;">
+          <h2 style="margin:0 0 24px;font-size:1.5rem;">Quick Tips</h2>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;">
+            <li style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#4ade80;font-size:1.1rem;">✓</span> Use at least 6 characters</li>
+            <li style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#4ade80;font-size:1.1rem;">✓</span> Mix letters and numbers for a stronger password</li>
+            <li style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#4ade80;font-size:1.1rem;">✓</span> You will be redirected to login after updating</li>
+            <li style="display:flex;align-items:flex-start;gap:10px;"><span style="color:#4ade80;font-size:1.1rem;">✓</span> All your data and plan remain unchanged</li>
+          </ul>
+        </div>
+      </div>
+    `;
+    document.querySelector("main").appendChild(resetPage);
+  }
+
+  resetPage.style.display = "flex";
   document.querySelector("#updatePasswordBtn").addEventListener("click", handlePasswordUpdate);
+
+  // Mobile: stack columns
+  if (window.innerWidth < 700) {
+    resetPage.querySelector("div[style*='grid']").style.gridTemplateColumns = "1fr";
+  }
 }
 async function handlePasswordUpdate() {
   const newPassword = document.querySelector("#newPassword").value;
