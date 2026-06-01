@@ -671,6 +671,11 @@ async function handleLogin(event) {
   const password = document.querySelector("#loginPassword").value;
 
   if (supabaseClient) {
+    // ✅ FIX: Clear any stale session before logging in
+    await supabaseClient.auth.signOut();
+    Object.keys(localStorage).forEach(key => { if (key.startsWith('sb-')) localStorage.removeItem(key); });
+    Object.keys(sessionStorage).forEach(key => { if (key.startsWith('sb-')) sessionStorage.removeItem(key); });
+
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
       setAuthMessage(error.message);
@@ -709,6 +714,9 @@ async function handleForgotPassword(event) {
 async function handleLogout() {
   if (supabaseClient) {
     await supabaseClient.auth.signOut();
+    // FIX: Clear all stale Supabase tokens from storage
+    Object.keys(localStorage).forEach(key => { if (key.startsWith("sb-")) localStorage.removeItem(key); });
+    Object.keys(sessionStorage).forEach(key => { if (key.startsWith("sb-")) sessionStorage.removeItem(key); });
   } else {
     const account = localAccount();
     if (account) saveLocalAccount({ ...account, loggedIn: false });
@@ -716,6 +724,9 @@ async function handleLogout() {
   state.user = null;
   state.planId = "guest";
   state.pdfUsed = 0;
+  // FIX: Clear login form fields so next login starts fresh
+  document.querySelector("#loginEmail").value = "";
+  document.querySelector("#loginPassword").value = "";
   updateAccountUi();
   showPage("login");
   setAuthMessage("Logged out.");
