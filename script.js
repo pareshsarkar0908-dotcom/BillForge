@@ -195,15 +195,12 @@ const tools = {
     },
   },
 };
-
 const appConfig = {
   supabaseUrl: "https://fhujjvzvxuoavvrfagig.supabase.co",
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZodWpqdnp2eHVvYXZ2cmZhZ2lnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTM2MTksImV4cCI6MjA5NTg2OTYxOX0.bkTCR0b5Jr2nCjyKZJBLHuqsWOPvQ2vY2RoD0JS7KKw",
   razorpayKeyId: "rzp_live_SvxaS8NNrTTmVP",
-  // Production note: create Razorpay orders on a secure backend or Supabase Edge Function.
   createOrderEndpoint: "/api/create-razorpay-order",
 };
-
 const plans = {
   starter: {
     id: "starter",
@@ -238,7 +235,6 @@ const plans = {
     description: "All tools with 280 PDF generations.",
   },
 };
-
 const state = {
   docType: "invoice",
   activeTool: "invoice",
@@ -251,7 +247,6 @@ const state = {
     { description: "Social media banner set", quantity: 2, rate: 2500 },
   ],
 };
-
 const form = document.querySelector("#documentForm");
 const itemsList = document.querySelector("#itemsList");
 const previewItems = document.querySelector("#previewItems");
@@ -259,7 +254,6 @@ const currency = document.querySelector("#currency");
 const calculatorTool = document.querySelector("#calculatorTool");
 const documentTool = document.querySelector("#documentTool");
 const supabaseClient = createSupabaseClient();
-
 const fields = {
   businessName: document.querySelector("#businessName"),
   businessDetails: document.querySelector("#businessDetails"),
@@ -272,17 +266,14 @@ const fields = {
   discount: document.querySelector("#discount"),
   notes: document.querySelector("#notes"),
 };
-
 function addDays(date, days) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
 }
-
 function toDateInputValue(date) {
   return date.toISOString().slice(0, 10);
 }
-
 function formatDate(value) {
   if (!value) return "-";
   return new Intl.DateTimeFormat("en-IN", {
@@ -291,47 +282,37 @@ function formatDate(value) {
     year: "numeric",
   }).format(new Date(`${value}T00:00:00`));
 }
-
 function formatNumber(value) {
   return Number(value || 0).toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 }
-
 function money(value) {
   return `${currency.value}${formatNumber(value)}`;
 }
-
 function isSupabaseConfigured() {
   return appConfig.supabaseUrl.includes("supabase.co") && !appConfig.supabaseUrl.includes("YOUR_") && !appConfig.supabaseAnonKey.includes("YOUR_");
 }
-
 function createSupabaseClient() {
   if (!isSupabaseConfigured() || !window.supabase) return null;
   return window.supabase.createClient(appConfig.supabaseUrl, appConfig.supabaseAnonKey);
 }
-
 function localAccount() {
   return JSON.parse(localStorage.getItem("billforge_account") || "null");
 }
-
 function saveLocalAccount(account) {
   localStorage.setItem("billforge_account", JSON.stringify(account));
 }
-
 function profileKey() {
   return state.user?.email ? `billforge_profile_${state.user.email}` : "billforge_profile_guest";
 }
-
 function loadLocalProfile() {
   return JSON.parse(localStorage.getItem(profileKey()) || "null");
 }
-
 function saveLocalProfile(profile) {
   localStorage.setItem(profileKey(), JSON.stringify(profile));
 }
-
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -339,7 +320,6 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 }
-
 function docLabel() {
   const labels = {
     invoice: "Invoice",
@@ -348,7 +328,6 @@ function docLabel() {
   };
   return labels[state.docType];
 }
-
 function renderItemsEditor() {
   itemsList.innerHTML = "";
   state.items.forEach((item, index) => {
@@ -363,7 +342,6 @@ function renderItemsEditor() {
     itemsList.appendChild(row);
   });
 }
-
 function updatePreview() {
   const typeLabel = docLabel();
   const dueLabel = state.docType === "invoice" ? "Due" : state.docType === "quotation" ? "Valid until" : "Paid on";
@@ -372,7 +350,6 @@ function updatePreview() {
   const taxable = Math.max(subtotal - discount, 0);
   const tax = state.docType === "receipt" ? 0 : taxable * (Number(fields.taxRate.value || 0) / 100);
   const total = taxable + tax;
-
   document.querySelector("#previewTitle").textContent = typeLabel;
   document.querySelector("#previewDocType").textContent = typeLabel;
   document.querySelector("#dueLabel").textContent = dueLabel;
@@ -390,7 +367,6 @@ function updatePreview() {
   document.querySelector("#discountValue").textContent = money(discount);
   document.querySelector("#taxValue").textContent = money(tax);
   document.querySelector("#totalValue").textContent = money(total);
-
   previewItems.innerHTML = "";
   state.items.forEach((item) => {
     const amount = Number(item.quantity || 0) * Number(item.rate || 0);
@@ -404,7 +380,6 @@ function updatePreview() {
     previewItems.appendChild(tr);
   });
 }
-
 function setDocType(nextType) {
   state.docType = nextType;
   document.querySelectorAll(".segment").forEach((button) => {
@@ -412,7 +387,6 @@ function setDocType(nextType) {
   });
   updatePreview();
 }
-
 function loadSample() {
   fields.businessName.value = "Quick Supply Co.";
   fields.businessDetails.value = "Park Street, Kolkata\nsupport@quicksupply.example\n+91 91234 56780";
@@ -430,7 +404,6 @@ function loadSample() {
   renderItemsEditor();
   updatePreview();
 }
-
 function showPage(pageName, updateHash = true) {
   const availablePages = ["dashboard", "tools", "pricing", "support", "privacy", "terms", "refund", "login"];
   const nextPage = availablePages.includes(pageName) ? pageName : "dashboard";
@@ -444,13 +417,11 @@ function showPage(pageName, updateHash = true) {
     window.location.hash = nextPage;
   }
 }
-
 function setAuthView(view) {
   document.querySelector("#loginPanel").classList.toggle("hidden", view !== "login");
   document.querySelector("#createPanel").classList.toggle("hidden", view !== "create");
   document.querySelector("#forgotPanel").classList.toggle("hidden", view !== "forgot");
 }
-
 function setTool(toolKey) {
   const tool = tools[toolKey] || tools.invoice;
   state.activeTool = toolKey;
@@ -460,15 +431,12 @@ function setTool(toolKey) {
   document.querySelectorAll(".tool-tab").forEach((button) => {
     button.classList.toggle("active", button.dataset.tool === toolKey);
   });
-
   if (isDocument) {
     setDocType(tool.docType);
     return;
   }
-
   renderCalculator(tool);
 }
-
 function renderCalculator(tool) {
   document.querySelector("#toolCategory").textContent = tool.category;
   document.querySelector("#toolName").textContent = tool.name;
@@ -496,7 +464,6 @@ function renderCalculator(tool) {
     .join("");
   updateCalculator();
 }
-
 function readCalculatorValues(tool) {
   return Object.fromEntries(
     tool.fields.map((field) => {
@@ -505,7 +472,6 @@ function readCalculatorValues(tool) {
     }),
   );
 }
-
 function updateCalculator() {
   const tool = tools[state.activeTool];
   if (!tool || tool.type !== "calculator") return;
@@ -515,7 +481,6 @@ function updateCalculator() {
     .join("");
   document.querySelector("#insightBox").textContent = output.insight;
 }
-
 function renderFeatureCards(target, entries) {
   document.querySelector(target).innerHTML = entries
     .map(
@@ -532,7 +497,6 @@ function renderFeatureCards(target, entries) {
     )
     .join("");
 }
-
 function renderPricing() {
   document.querySelector("#pricingCards").innerHTML = Object.values(plans)
     .map(
@@ -555,7 +519,6 @@ function renderPricing() {
     )
     .join("");
 }
-
 function updateAccountUi() {
   const plan = plans[state.planId];
   const limit = plan?.limit || 0;
@@ -569,13 +532,11 @@ function updateAccountUi() {
   document.querySelector("#quotaText").textContent = state.user ? `${used} of ${limit} PDF generations used.` : "Login to start tracking PDF usage.";
   document.querySelector("#quotaBar").style.width = `${percent}%`;
 }
-
 async function loadProfile() {
   if (!state.user) {
     updateAccountUi();
     return;
   }
-
   if (supabaseClient) {
     const { data, error } = await supabaseClient
       .from("profiles")
@@ -589,19 +550,16 @@ async function loadProfile() {
       return;
     }
   }
-
   const profile = loadLocalProfile() || { planId: "starter", pdfUsed: 0 };
   state.planId = profile.planId;
   state.pdfUsed = Number(profile.pdfUsed || 0);
   saveLocalProfile(profile);
   updateAccountUi();
 }
-
 async function saveProfile() {
   if (!state.user) return;
   const profile = { planId: state.planId, pdfUsed: state.pdfUsed };
   saveLocalProfile(profile);
-
   if (supabaseClient) {
     await supabaseClient.from("profiles").upsert({
       id: state.user.id,
@@ -612,27 +570,20 @@ async function saveProfile() {
     });
   }
 }
-
 function setAuthMessage(message) {
   const el = document.querySelector("#authMessage");
   if (el) el.textContent = message;
 }
-
 function setPaymentMessage(message) {
   const paymentMessage = document.querySelector("#paymentMessage");
   if (paymentMessage) paymentMessage.textContent = message;
 }
-
-// ✅ FIX 1: Helper to clear all stale Supabase tokens from storage
 function clearSupabaseStorage() {
   Object.keys(localStorage).forEach(key => { if (key.startsWith("sb-")) localStorage.removeItem(key); });
   Object.keys(sessionStorage).forEach(key => { if (key.startsWith("sb-")) sessionStorage.removeItem(key); });
 }
-
-// ✅ FIX 2: Show a "Set New Password" form when user arrives via reset email link
 function showPasswordResetForm() {
   showPage("login");
-  // Replace loginPanel content with reset form
   document.querySelector("#loginPanel").innerHTML = `
     <p class="eyebrow">Password reset</p>
     <h1>Set New Password</h1>
@@ -647,8 +598,6 @@ function showPasswordResetForm() {
   `;
   document.querySelector("#updatePasswordBtn").addEventListener("click", handlePasswordUpdate);
 }
-
-// ✅ FIX 3: Handle the actual password update
 async function handlePasswordUpdate() {
   const newPassword = document.querySelector("#newPassword").value;
   if (!newPassword || newPassword.length < 6) {
@@ -668,30 +617,32 @@ async function handlePasswordUpdate() {
     window.location.reload();
   }, 2000);
 }
-
 async function initializeAuth() {
   if (supabaseClient) {
-
-    // ✅ FIX 4: Detect password reset link from email (contains type=recovery in URL hash)
-    const hashParams = new URLSearchParams(window.location.hash.replace("#", "?").replace("login?", ""));
-    const fullHash = window.location.hash;
-    if (fullHash.includes("type=recovery") || fullHash.includes("access_token") && fullHash.includes("recovery")) {
-      // Let Supabase process the token from URL, then show reset form
-      supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === "PASSWORD_RECOVERY") {
-          showPasswordResetForm();
-        }
-      });
-      return;
-    }
-
-    const { data } = await supabaseClient.auth.getUser();
-    state.user = data.user || null;
-    if (state.user) await loadProfile();
-    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-      state.user = session?.user || null;
-      await loadProfile();
+    // ✅ FIXED: Register onAuthStateChange FIRST before anything else.
+    // Supabase automatically fires PASSWORD_RECOVERY when it detects a recovery token in the URL.
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        showPasswordResetForm();
+        return;
+      }
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        state.user = session?.user || null;
+        await loadProfile();
+      }
+      if (event === "SIGNED_OUT") {
+        state.user = null;
+        state.planId = "guest";
+        state.pdfUsed = 0;
+        updateAccountUi();
+      }
     });
+    // Restore existing session if present
+    const { data } = await supabaseClient.auth.getSession();
+    if (data.session?.user) {
+      state.user = data.session.user;
+      await loadProfile();
+    }
   } else {
     const account = localAccount();
     state.user = account?.loggedIn ? { id: account.email, email: account.email } : null;
@@ -699,13 +650,11 @@ async function initializeAuth() {
   }
   updateAccountUi();
 }
-
 async function handleCreateAccount(event) {
   event.preventDefault();
   const name = document.querySelector("#createName").value.trim();
   const email = document.querySelector("#createEmail").value.trim();
   const password = document.querySelector("#createPassword").value;
-
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signUp({
       email,
@@ -719,22 +668,17 @@ async function handleCreateAccount(event) {
   } else {
     saveLocalAccount({ name, email, password, loggedIn: false });
   }
-
   setAuthView("login");
   showPage("login");
   setAuthMessage("Account created. Please login now.");
 }
-
 async function handleLogin(event) {
   event.preventDefault();
   const email = document.querySelector("#loginEmail").value.trim();
   const password = document.querySelector("#loginPassword").value;
-
   if (supabaseClient) {
-    // ✅ FIX 5: Clear stale session before every login to prevent "Invalid login credentials"
     await supabaseClient.auth.signOut();
     clearSupabaseStorage();
-
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
       setAuthMessage(error.message);
@@ -751,12 +695,10 @@ async function handleLogin(event) {
     saveLocalAccount(account);
     state.user = { id: email, email };
   }
-
   await loadProfile();
   showPage("tools");
   setAuthMessage("Logged in successfully.");
 }
-
 async function handleForgotPassword(event) {
   event.preventDefault();
   const email = document.querySelector("#forgotEmail").value.trim();
@@ -769,11 +711,9 @@ async function handleForgotPassword(event) {
     setAuthMessage("Demo mode: add Supabase keys to send real password reset emails.");
   }
 }
-
 async function handleLogout() {
   if (supabaseClient) {
     await supabaseClient.auth.signOut();
-    // ✅ FIX 6: Clear all stale tokens so re-login works cleanly
     clearSupabaseStorage();
   } else {
     const account = localAccount();
@@ -782,14 +722,12 @@ async function handleLogout() {
   state.user = null;
   state.planId = "guest";
   state.pdfUsed = 0;
-  // ✅ FIX 7: Reset login form fields on logout
   document.querySelector("#loginEmail").value = "";
   document.querySelector("#loginPassword").value = "";
   updateAccountUi();
   showPage("login");
   setAuthMessage("Logged out.");
 }
-
 async function activatePlan(planId, paymentId = "") {
   const plan = plans[planId];
   if (!state.user) {
@@ -804,7 +742,6 @@ async function activatePlan(planId, paymentId = "") {
   setAuthMessage(paymentId ? `Payment successful: ${paymentId}` : `${plan.name} package activated.`);
   setPaymentMessage(paymentId ? `${plan.name} package activated. Payment ID: ${paymentId}` : `${plan.name} package activated.`);
 }
-
 async function startPayment(planId) {
   const plan = plans[planId];
   if (!state.user) {
@@ -823,9 +760,7 @@ async function startPayment(planId) {
     setPaymentMessage(message);
     return;
   }
-
   setPaymentMessage(`Opening Razorpay for ${plan.name} package...`);
-
   try {
     const options = {
       key: appConfig.razorpayKeyId,
@@ -842,7 +777,6 @@ async function startPayment(planId) {
       },
       theme: { color: "#0f766e" },
     };
-
     if (appConfig.createOrderEndpoint) {
       const orderResponse = await fetch(appConfig.createOrderEndpoint, {
         method: "POST",
@@ -855,7 +789,6 @@ async function startPayment(planId) {
       }
       options.order_id = order.id;
     }
-
     new window.Razorpay(options).open();
   } catch (error) {
     const message = `Payment could not start: ${error.message}`;
@@ -863,7 +796,6 @@ async function startPayment(planId) {
     setPaymentMessage(message);
   }
 }
-
 async function canGeneratePdf() {
   if (!state.user) {
     showPage("login");
@@ -882,26 +814,21 @@ async function canGeneratePdf() {
   }
   return true;
 }
-
 async function generatePdf() {
   const allowed = await canGeneratePdf();
   if (!allowed) return;
   state.pendingPdfCharge = true;
   window.print();
 }
-
 async function confirmPdfGenerated() {
   if (!state.pendingPdfCharge) return;
   state.pendingPdfCharge = false;
-
   const saved = window.confirm("Did the PDF save or print successfully?");
   if (!saved) return;
-
   state.pdfUsed += 1;
   await saveProfile();
   updateAccountUi();
 }
-
 function handleSampleAction() {
   if (!state.user) {
     setAuthView("create");
@@ -911,37 +838,31 @@ function handleSampleAction() {
   }
   loadSample();
 }
-
 function initializeDates() {
   const today = new Date();
   fields.documentDate.value = toDateInputValue(today);
   fields.dueDate.value = toDateInputValue(addDays(today, 7));
 }
-
 document.addEventListener("click", (event) => {
   const pageLink = event.target.closest("[data-page-link]");
   if (pageLink) {
     event.preventDefault();
     showPage(pageLink.dataset.pageLink);
   }
-
   const openTool = event.target.closest("[data-open-tool]");
   if (openTool) {
     showPage("tools");
     setTool(openTool.dataset.openTool);
   }
-
   const authView = event.target.closest("[data-auth-view]");
   if (authView) {
     setAuthView(authView.dataset.authView);
   }
-
   const planButton = event.target.closest("[data-plan-id]");
   if (planButton) {
     startPayment(planButton.dataset.planId);
   }
 });
-
 itemsList.addEventListener("input", (event) => {
   const input = event.target;
   const index = Number(input.dataset.index);
@@ -951,7 +872,6 @@ itemsList.addEventListener("input", (event) => {
     updatePreview();
   }
 });
-
 itemsList.addEventListener("click", (event) => {
   const removeIndex = event.target.dataset.remove;
   if (removeIndex !== undefined) {
@@ -963,21 +883,17 @@ itemsList.addEventListener("click", (event) => {
     updatePreview();
   }
 });
-
 document.querySelector("#addItemBtn").addEventListener("click", () => {
   state.items.push({ description: "", quantity: 1, rate: 0 });
   renderItemsEditor();
   updatePreview();
 });
-
 document.querySelectorAll(".segment").forEach((button) => {
   button.addEventListener("click", () => setTool(button.dataset.docType));
 });
-
 document.querySelectorAll(".tool-tab").forEach((button) => {
   button.addEventListener("click", () => setTool(button.dataset.tool));
 });
-
 document.querySelector("#calcForm").addEventListener("input", updateCalculator);
 document.querySelector("#sampleBtn").addEventListener("click", handleSampleAction);
 document.querySelector("#printBtn").addEventListener("click", generatePdf);
@@ -989,7 +905,6 @@ document.querySelector("#logoutBtn").addEventListener("click", handleLogout);
 form.addEventListener("input", updatePreview);
 window.addEventListener("hashchange", () => showPage((window.location.hash || "#dashboard").replace("#", ""), false));
 window.addEventListener("afterprint", confirmPdfGenerated);
-
 renderFeatureCards("#dashboardTools", Object.entries(tools));
 renderPricing();
 initializeDates();
