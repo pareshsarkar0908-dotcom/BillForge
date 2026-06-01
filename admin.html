@@ -136,7 +136,7 @@
       }
 
       async function loadData() {
-        const serviceClient = supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+        const serviceClient = client;
 
         const { data: profiles } = await serviceClient.from("profiles").select("*").order("updated_at", { ascending: false });
         const { data: payments } = await serviceClient.from("payments").select("*").order("created_at", { ascending: false });
