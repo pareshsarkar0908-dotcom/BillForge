@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BillForge - Invoice, Receipt & Quotation Generator</title>
+    <meta name="description" content="Create invoices, receipts, quotations, estimates, GST-ready documents, and business calculator PDFs with BillForge." />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="BillForge" />
+    <meta name="msapplication-TileColor" content="#0f766e" />
+    <link rel="canonical" href="https://www.billforge.net/" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <script>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem("billforge_theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const theme = savedTheme || (prefersDark ? "dark" : "light");
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css?v=20260603-templatefix" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZZKHXGPR7S"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZZKHXGPR7S');
+      gtag('config', 'AW-18200043019');
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#dashboard" data-page-link="dashboard" aria-label="BillForge dashboard">
+        <span class="brand-mark">B</span>
+        <span>
+          <strong>BillForge</strong>
+          <small>Business tools</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="#dashboard" data-page-link="dashboard">Dashboard</a>
+        <a class="nav-link" href="#tools" data-page-link="tools">Tools</a>
+        <a class="nav-link" href="#pricing" data-page-link="pricing">Pricing</a>
+        <a class="nav-link" href="#support" data-page-link="support">Support</a>
+        <a class="nav-link" href="#privacy" data-page-link="privacy">Privacy</a>
+        <a class="nav-link" href="#terms" data-page-link="terms">Terms</a>
+        <a class="nav-link" href="#refund" data-page-link="refund">Refund</a>
+        <a class="nav-link" href="#login" data-page-link="login" id="authNavLink">Login</a>
+      </nav>
+      <div class="header-actions">
+        <span class="account-pill" id="accountStatus">Guest</span>
+        <button class="ghost-btn theme-toggle" id="themeToggleBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+          <span aria-hidden="true">☾</span>
+        </button>
+        <button class="ghost-btn hidden" id="installPwaBtn" type="button">Install App</button>
+        <button class="ghost-btn" id="primaryActionBtn" type="button">Load Sample</button>
+        <button class="primary-btn" id="printBtn" type="button">Save PDF</button>
+      </div>
+    </header>
+    <main>
+      <section class="page active" id="dashboardPage" data-page="dashboard">
+        <div class="hero-panel">
+          <div class="hero-copy">
+            <p class="eyebrow">Simple business tools</p>
+            <h1>Create invoices and business PDFs in minutes.</h1>
+            <p>Build invoices, receipts, quotations, estimates, and GST-ready documents without complex accounting software. Save professional PDFs and keep your daily billing work organized.</p>
+            <div class="hero-actions">
+              <button class="primary-link" type="button" data-open-tool="invoice">Create Invoice</button>
+              <button class="secondary-link" type="button" data-open-tool="receipt">Make Receipt</button>
+              <button class="secondary-link" type="button" data-open-tool="quotation">Generate Quotation</button>
+              <a class="secondary-link" href="#pricing" data-page-link="pricing">View Pricing</a>
+            </div>
+          </div>
+          <div class="hero-preview invoice-mini" aria-label="Sample invoice preview">
+            <div class="mini-doc-head">
+              <div>
+                <strong>BillForge Invoice</strong>
+                <span>INV-2026-018</span>
+              </div>
+              <b>₹8,496.00</b>
+            </div>
+            <div class="mini-doc-line"><span>GST setup</span><strong>18%</strong></div>
+            <div class="mini-doc-line"><span>2 products</span><strong>PDF ready</strong></div>
+            <div class="mini-doc-table">
+              <span>Product labels</span><b>₹4,500</b>
+              <span>Design setup</span><b>₹2,700</b>
+            </div>
+            <p>Preview real invoice output before a customer pays.</p>
+          </div>
+        </div>
+        <div class="trust-strip" aria-label="BillForge trust points">
+          <span>Secure payments by Razorpay</span>
+          <span>Data stored securely with Supabase</span>
+          <span>GST fields included</span>
+          <span>Monthly PDF plans for small businesses</span>
+        </div>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">All tools</p>
+            <h2>Documents and calculators in one workspace</h2>
+          </div>
+          <a class="text-link" href="#tools" data-page-link="tools">See all tools</a>
+        </div>
+        <div class="feature-grid" id="dashboardTools"></div>
+      </section>
+      <section class="page" id="toolsPage" data-page="tools">
+        <div class="page-title">
+          <p class="eyebrow">Tool workspace</p>
+          <h1>Business Tools</h1>
+          <p>Select a tool below. Documents can be printed or saved as PDF, and calculators update instantly from the values you enter.</p>
+        </div>
+        <div class="tool-strip" aria-label="Business tools">
+          <button class="tool-tab active" type="button" data-tool="invoice">Invoice Generator</button>
+          <button class="tool-tab" type="button" data-tool="quotation">Quotation/Estimate</button>
+          <button class="tool-tab" type="button" data-tool="receipt">Receipt Generator</button>
+          <button class="tool-tab" type="button" data-tool="gst">GST Calculator</button>
+          <button class="tool-tab" type="button" data-tool="margin">Profit Margin</button>
+          <button class="tool-tab" type="button" data-tool="break-even">Break-Even</button>
+          <button class="tool-tab" type="button" data-tool="roi">ROI Calculator</button>
+          <button class="tool-tab" type="button" data-tool="cash-flow">Cash Flow Tracker</button>
+          <button class="tool-tab" type="button" data-tool="expense">Expense Tracker</button>
+          <button class="tool-tab" type="button" data-tool="tax">Tax Calculator</button>
+        </div>
+        <div class="document-shell" id="documentTool">
+          <section class="editor-panel" aria-label="Document editor">
+            <div class="panel-heading">
+              <h2>Create</h2>
+              <div class="segmented" role="group" aria-label="Document type">
+                <button class="segment active" type="button" data-doc-type="invoice">Invoice</button>
+                <button class="segment" type="button" data-doc-type="quotation">Quotation</button>
+                <button class="segment" type="button" data-doc-type="receipt">Receipt</button>
+              </div>
+            </div>
+            <label>
+              PDF template
+              <select id="templateStyle" name="templateStyle">
+                <option value="simple">Simple</option>
+                <option value="modern">Modern</option>
+                <option value="tax-invoice">Tax Invoice</option>
+                <option value="gst">GST invoice</option>
+              </select>
+            </label>
+            <div class="quick-library">
+              <label>
+                Use saved customer
+                <select id="savedCustomerSelect">
+                  <option value="">Login and save customers to reuse them</option>
+                </select>
+              </label>
+              <label>
+                Add saved item
+                <select id="savedItemSelect">
+                  <option value="">Login and save items to reuse them</option>
+                </select>
+              </label>
+            </div>
+            <form id="documentForm">
+              <fieldset>
+                <legend>Business</legend>
+                <label>
+                  Business name
+                  <input id="businessName" name="businessName" type="text" value="Bright Works Studio" />
+                </label>
+                <label>
+                  Business details
+                  <textarea id="businessDetails" name="businessDetails" rows="3">Mumbai, India
+hello@brightworks.example
++91 98765 43210</textarea>
+                </label>
+                <label>
+                  Business GSTIN
+                  <input id="businessGstin" name="businessGstin" type="text" placeholder="Example: 27ABCDE1234F1Z5" />
+                </label>
+              </fieldset>
+              <fieldset>
+                <legend>Customer</legend>
+                <label>
+                  Customer name
+                  <input id="customerName" name="customerName" type="text" value="Acme Retail" />
+                </label>
+                <label>
+                  Customer details
+                  <textarea id="customerDetails" name="customerDetails" rows="3">Attn: Priya Sharma
+Pune, India</textarea>
+                </label>
+                <label>
+                  Customer GSTIN
+                  <input id="customerGstin" name="customerGstin" type="text" placeholder="Optional GSTIN" />
+                </label>
+                <label>
+                  Customer PAN
+                  <input id="customerPan" name="customerPan" type="text" placeholder="Optional PAN" />
+                </label>
+                <label>
+                  Customer mobile
+                  <input id="customerMobile" name="customerMobile" type="tel" placeholder="Optional phone number" />
+                </label>
+                <label class="wide-field">
+                  Ship to address
+                  <textarea id="shipToDetails" name="shipToDetails" rows="3" placeholder="Leave blank if same as billing address"></textarea>
+                </label>
+                <button class="secondary-btn" id="saveCustomerBtn" type="button">Save Customer</button>
+              </fieldset>
+              <fieldset class="details-grid">
+                <legend>Document</legend>
+                <label>
+                  Number
+                  <input id="documentNumber" name="documentNumber" type="text" value="BF-1001" />
+                </label>
+                <label>
+                  Date
+                  <input id="documentDate" name="documentDate" type="date" />
+                </label>
+                <label>
+                  <span id="dateDetailLabel">Due / valid until</span>
+                  <input id="dueDate" name="dueDate" type="date" />
+                </label>
+                <label>
+                  Currency
+                  <select id="currency" name="currency">
+                    <option value="₹">INR ₹</option>
+                    <option value="$">USD $</option>
+                    <option value="€">EUR €</option>
+                    <option value="£">GBP £</option>
+                  </select>
+                </label>
+                <label>
+                  Tax %
+                  <input id="taxRate" name="taxRate" type="number" min="0" step="0.1" value="18" />
+                </label>
+                <label>
+                  GST type
+                  <select id="taxMode" name="taxMode">
+                    <option value="cgst_sgst">CGST + SGST</option>
+                    <option value="igst">IGST</option>
+                    <option value="none">No GST</option>
+                  </select>
+                </label>
+                <label>
+                  Place of supply
+                  <input id="placeOfSupply" name="placeOfSupply" type="text" value="Maharashtra" />
+                </label>
+                <label>
+                  Reverse charge
+                  <select id="reverseCharge" name="reverseCharge">
+                    <option value="N">N</option>
+                    <option value="Y">Y</option>
+                  </select>
+                </label>
+                <label>
+                  Discount
+                  <input id="discount" name="discount" type="number" min="0" step="1" value="0" />
+                </label>
+                <label>
+                  Transport
+                  <input id="transport" name="transport" type="text" placeholder="Example: TATA ACE" />
+                </label>
+                <label>
+                  Vehicle No.
+                  <input id="vehicleNo" name="vehicleNo" type="text" placeholder="Optional" />
+                </label>
+                <label>
+                  E-Way Bill No.
+                  <input id="ewayBill" name="ewayBill" type="text" placeholder="Optional" />
+                </label>
+              </fieldset>
+              <fieldset>
+                <legend>Items</legend>
+                <div class="items-head" aria-hidden="true">
+                  <span>Description</span>
+                  <span>HSN/SAC</span>
+                  <span>Qty</span>
+                  <span>Unit</span>
+                  <span>Rate</span>
+                  <span></span>
+                </div>
+                <div id="itemsList"></div>
+                <button class="secondary-btn" id="addItemBtn" type="button">Add Item</button>
+                <button class="secondary-btn subtle-btn" id="saveItemsBtn" type="button">Save Items</button>
+              </fieldset>
+              <fieldset>
+                <legend>Notes</legend>
+                <label>
+                  Payment terms or message
+                  <textarea id="notes" name="notes" rows="3">Thank you for your business. Payment can be made by bank transfer or UPI.</textarea>
+                </label>
+              </fieldset>
+            </form>
+          </section>
+          <section class="preview-panel" aria-label="Document preview">
+            <div class="preview-toolbar">
+              <div>
+                <p class="eyebrow">Live preview</p>
+                <h2 id="previewTitle">Invoice</h2>
+              </div>
+              <button class="primary-btn compact" id="printBtnMobile" type="button">Save PDF</button>
+            </div>
+            <article class="document-preview" id="printArea">
+              <div class="doc-watermark">FREE</div>
+              <div class="tax-copy-line hidden" id="taxCopyLine">
+                <strong id="previewTaxGstin"></strong>
+                <span>Original Copy</span>
+              </div>
+              <div class="doc-header">
+                <div>
+                <p class="doc-brand" id="previewBusinessName"></p>
+                <p id="previewBusinessDetails"></p>
+                <p class="gst-line" id="previewBusinessGstin"></p>
+                </div>
+                <div class="doc-meta">
+                  <h3 id="previewDocType">Invoice</h3>
+                  <p><span>No.</span> <strong id="previewNumber"></strong></p>
+                  <p><span>Date</span> <strong id="previewDate"></strong></p>
+                  <p><span id="dueLabel">Due</span> <strong id="previewDueDate"></strong></p>
+                  <p><span>Supply</span> <strong id="previewPlaceOfSupply"></strong></p>
+                  <p class="tax-only"><span>Reverse Charge</span> <strong id="previewReverseCharge"></strong></p>
+                </div>
+              </div>
+              <div class="tax-transport-grid hidden" id="taxTransportGrid">
+                <p><span>Transport</span> <strong id="previewTransport"></strong></p>
+                <p><span>Vehicle No.</span> <strong id="previewVehicleNo"></strong></p>
+                <p><span>E-Way Bill No.</span> <strong id="previewEwayBill"></strong></p>
+              </div>
+              <div class="billing-row">
+                <div>
+                  <span id="customerLabel">Bill to</span>
+                  <strong id="previewCustomerName"></strong>
+                  <p id="previewCustomerDetails"></p>
+                  <p class="gst-line" id="previewCustomerGstin"></p>
+                  <p class="party-line" id="previewCustomerPan"></p>
+                  <p class="party-line" id="previewCustomerMobile"></p>
+                </div>
+                <div class="ship-to-box hidden" id="shipToBox">
+                  <span>Ship to</span>
+                  <strong id="previewShipToName"></strong>
+                  <p id="previewShipToDetails"></p>
+                  <p class="gst-line" id="previewShipToGstin"></p>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr id="previewTableHead">
+                    <th>Description</th>
+                    <th>HSN/SAC</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="previewItems"></tbody>
+              </table>
+              <div class="tax-summary-panel hidden" id="taxSummaryPanel">
+                <table class="tax-summary-table">
+                  <thead>
+                    <tr>
+                      <th>HSN/SAC</th>
+                      <th>Tax Rate</th>
+                      <th>Taxable Amt.</th>
+                      <th>CGST Amt.</th>
+                      <th>SGST Amt.</th>
+                      <th>IGST Amt.</th>
+                      <th>Total Tax</th>
+                    </tr>
+                  </thead>
+                  <tbody id="taxSummaryRows"></tbody>
+                </table>
+                <p class="amount-words" id="amountInWords"></p>
+              </div>
+              <div class="totals">
+                <div class="notes">
+                  <strong>Notes</strong>
+                  <p id="previewNotes"></p>
+                </div>
+                <div class="total-box">
+                  <p><span>Subtotal</span> <strong id="subtotalValue"></strong></p>
+                  <p><span>Discount</span> <strong id="discountValue"></strong></p>
+                  <p id="cgstRow"><span>CGST</span> <strong id="cgstValue"></strong></p>
+                  <p id="sgstRow"><span>SGST</span> <strong id="sgstValue"></strong></p>
+                  <p id="igstRow"><span>IGST</span> <strong id="igstValue"></strong></p>
+                  <p class="grand-total"><span>Total</span> <strong id="totalValue"></strong></p>
+                </div>
+              </div>
+              <div class="signature-grid hidden" id="signatureGrid">
+                <div>
+                  <strong>Receiver's Signature</strong>
+                  <span></span>
+                </div>
+                <div>
+                  <strong id="signatureBusinessName"></strong>
+                  <span>Authorised Signatory</span>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
+        <div class="workspace-grid">
+          <section class="workspace-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">History</p>
+                <h2>Saved documents</h2>
+              </div>
+              <button class="secondary-btn fit-btn" id="saveDocumentBtn" type="button">Save Document</button>
+            </div>
+            <div class="history-list" id="documentHistory"></div>
+          </section>
+          <section class="workspace-panel">
+            <p class="eyebrow">Reusable data</p>
+            <h2>Saved customers & items</h2>
+            <div class="saved-library">
+              <div>
+                <h3>Customers</h3>
+                <div id="savedCustomers"></div>
+              </div>
+              <div>
+                <h3>Items</h3>
+                <div id="savedItems"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="calculator-workspace hidden" id="calculatorTool" aria-live="polite">
+          <section class="calculator-panel" aria-label="Calculator input">
+            <p class="eyebrow" id="toolCategory">Calculator</p>
+            <h2 id="toolName">GST Calculator</h2>
+            <p class="tool-description" id="toolDescription"></p>
+            <form class="calc-form" id="calcForm"></form>
+          </section>
+          <section class="results-panel" aria-label="Calculator results">
+            <div class="preview-toolbar">
+              <div>
+                <p class="eyebrow">Results</p>
+                <h2 id="resultTitle">Summary</h2>
+              </div>
+            </div>
+            <div class="result-grid" id="resultGrid"></div>
+            <div class="insight-box" id="insightBox"></div>
+          </section>
+        </div>
+        <section class="seo-tool-sections" aria-label="BillForge tool pages">
+          <article id="invoice-generator">
+            <p class="eyebrow">Invoice Generator</p>
+            <h2>Online invoice generator for small businesses</h2>
+            <p>Create invoice PDFs with customer details, GSTIN, HSN/SAC, tax split, due date, notes, and itemized pricing.</p>
+          </article>
+          <article id="receipt-generator">
+            <p class="eyebrow">Receipt Maker</p>
+            <h2>Receipt maker for paid orders</h2>
+            <p>Generate clean receipts after payment and keep them in your document history for later downloads.</p>
+          </article>
+          <article id="quotation-generator">
+            <p class="eyebrow">Quotation Generator</p>
+            <h2>Quotation and estimate generator</h2>
+            <p>Prepare quotations with validity dates, pricing, discounts, and professional PDF templates.</p>
+          </article>
+          <article id="estimate-generator">
+            <p class="eyebrow">Estimate Generator</p>
+            <h2>Fast estimate PDFs</h2>
+            <p>Use the estimate template when you want to send a price proposal before creating an invoice.</p>
+          </article>
+          <article id="gst-invoice-generator">
+            <p class="eyebrow">GST Invoice Generator</p>
+            <h2>GST invoice fields included</h2>
+            <p>Add GSTIN, place of supply, HSN/SAC, CGST, SGST, and IGST details for better Indian billing documents.</p>
+          </article>
+        </section>
+      </section>
+      <section class="page" id="pricingPage" data-page="pricing">
+        <div class="page-title">
+          <p class="eyebrow">Monthly subscriptions</p>
+          <h1>Choose Your Monthly PDF Limit</h1>
+          <p>Every monthly plan includes all tools. PDF usage resets every 30 days from activation.</p>
+        </div>
+        <div class="payment-message" id="paymentMessage">Login first, then choose a monthly plan.</div>
+        <div class="pricing-grid pricing-grid-four" id="pricingCards"></div>
+        <p class="subscription-note">Paid plans use 30-day manual renewal with Razorpay. They do not auto-charge unless recurring billing is added later.</p>
+      </section>
+      <section class="page" id="loginPage" data-page="login">
+        <div class="auth-shell">
+          <section class="auth-panel" id="loginPanel">
+            <p class="eyebrow">Account</p>
+            <h1>Login</h1>
+            <p>Login to track your monthly PDF limit and plan.</p>
+            <form class="auth-form" id="loginForm">
+              <label>Email <input id="loginEmail" type="email" autocomplete="email" required /></label>
+              <label>Password <input id="loginPassword" type="password" autocomplete="current-password" required /></label>
+              <button class="primary-btn" type="submit">Login</button>
+            </form>
+            <div class="auth-links">
+              <button type="button" data-auth-view="create">Create account</button>
+              <button type="button" data-auth-view="forgot">Forgot password?</button>
+            </div>
+          </section>
+          <section class="auth-panel hidden" id="createPanel">
+            <p class="eyebrow">New account</p>
+            <h1>Create Account</h1>
+            <p>Create your account, then login to continue with your selected monthly plan.</p>
+            <form class="auth-form" id="createForm">
+              <label>Name <input id="createName" type="text" autocomplete="name" required /></label>
+              <label>Email <input id="createEmail" type="email" autocomplete="email" required /></label>
+              <label>Password <input id="createPassword" type="password" autocomplete="new-password" minlength="6" required /></label>
+              <button class="primary-btn" type="submit">Create Account</button>
+            </form>
+            <div class="auth-links">
+              <button type="button" data-auth-view="login">Back to login</button>
+            </div>
+          </section>
+          <section class="auth-panel hidden" id="forgotPanel">
+            <p class="eyebrow">Password help</p>
+            <h1>Forgot Password</h1>
+            <p>Enter your email and we will send a reset link to create a new password.</p>
+            <form class="auth-form" id="forgotForm">
+              <label>Email <input id="forgotEmail" type="email" autocomplete="email" required /></label>
+              <button class="primary-btn" type="submit">Send Reset Link</button>
+            </form>
+            <div class="auth-links">
+              <button type="button" data-auth-view="login">Back to login</button>
+            </div>
+          </section>
+          <section class="auth-panel hidden" id="resetPanel">
+            <p class="eyebrow">Password reset</p>
+            <h1>Create New Password</h1>
+            <p>Enter a new password for your BillForge account.</p>
+            <form class="auth-form" id="resetForm">
+              <label>New password <input id="resetPassword" type="password" autocomplete="new-password" minlength="6" required /></label>
+              <label>Confirm password <input id="resetPasswordConfirm" type="password" autocomplete="new-password" minlength="6" required /></label>
+              <button class="primary-btn" type="submit">Update Password</button>
+            </form>
+            <div class="auth-links">
+              <button type="button" data-auth-view="login">Back to login</button>
+            </div>
+          </section>
+          <aside class="auth-summary">
+            <p class="eyebrow">Current monthly plan</p>
+            <h2 id="currentPlanName">Guest</h2>
+            <p id="accountEmailText">Not logged in</p>
+            <div class="quota-meter">
+              <span id="quotaText">Login to start tracking PDF usage.</span>
+              <div><i id="quotaBar"></i></div>
+            </div>
+            <button class="ghost-btn hidden" id="logoutBtn" type="button">Logout</button>
+            <p id="authMessage" class="auth-message">Login or create an account to manage your monthly plan.</p>
+          </aside>
+        </div>
+      </section>
+      <section class="page" id="supportPage" data-page="support">
+        <div class="page-title">
+          <p class="eyebrow">Support</p>
+          <h1>Contact & Custom Work</h1>
+          <p>Use this page to collect messages from shop owners who want custom invoices, receipts, tax tools, or expense reports.</p>
+        </div>
+        <div class="contact-grid">
+          <article class="info-card">
+            <h2>About BillForge</h2>
+            <p>BillForge is built for small businesses, freelancers, and shop owners who need fast invoices, receipts, quotations, estimates, and simple PDF billing tools without complex accounting software.</p>
+            <p><strong>Secure payments by Razorpay.</strong></p>
+            <p><strong>Data stored securely with Supabase.</strong></p>
+            <p>For support, billing help, custom setup, or payment questions, email us at <a href="mailto:hellobillforge.ai@gmail.com">hellobillforge.ai@gmail.com</a>.</p>
+          </article>
+          <form class="contact-form">
+            <label>Name <input type="text" value="Green Leaf Cafe" /></label>
+            <label>Email <input type="email" value="customer@example.com" /></label>
+            <label>Message <textarea rows="5">I need a branded invoice and expense tracker for my shop.</textarea></label>
+            <button class="primary-btn" type="button">Send Request</button>
+          </form>
+        </div>
+        <div class="faq-grid">
+          <article class="info-card">
+            <h2>FAQ</h2>
+            <p><strong>Is BillForge accounting software?</strong><br />No. BillForge is a simple document and PDF billing workspace.</p>
+            <p><strong>Can I create GST invoices?</strong><br />Yes. You can add GSTIN, HSN/SAC, CGST, SGST, IGST, and place of supply.</p>
+            <p><strong>Do I need to login?</strong><br />Yes, login is required to track monthly PDF usage and plans.</p>
+          </article>
+          <article class="info-card">
+            <h2>Trust & Payments</h2>
+            <p>Payments are processed by Razorpay. BillForge does not store card, UPI, or bank details.</p>
+            <p>Your account, plan, usage, and saved billing data are handled through Supabase and browser storage.</p>
+            <p>Refund details are available on the Refund Policy page.</p>
+          </article>
+        </div>
+      </section>
+      <section class="page legal-page" id="privacyPage" data-page="privacy">
+        <div class="page-title">
+          <p class="eyebrow">Legal</p>
+          <h1>Privacy Policy</h1>
+          <p>Last updated: June 1, 2026</p>
+        </div>
+        <article class="legal-card">
+          <h2>Information We Collect</h2>
+          <p>BillForge may collect your name, email address, account details, monthly plan information, PDF usage count, and payment status when you create an account or choose a plan.</p>
+          <h2>How We Use Information</h2>
+          <p>We use your information to provide login, track PDF generation limits, manage monthly plans, process payments, improve the website, and respond to support requests.</p>
+          <h2>Payments</h2>
+          <p>Payments are handled through Razorpay. We do not store card, UPI, bank, or wallet details on this website.</p>
+          <h2>Data Storage</h2>
+          <p>User account and monthly plan data may be stored using Supabase. We take reasonable steps to protect user data, but no internet service can be guaranteed to be completely secure.</p>
+          <h2>Your Privacy Choices</h2>
+          <p>Read the full <a href="/privacy-policy.html">BillForge Privacy Policy</a>. To request account and data deletion, visit <a href="/account-deletion.html">Account Deletion</a>.</p>
+          <h2>Contact</h2>
+          <p>For privacy questions, email <a href="mailto:hellobillforge.ai@gmail.com">hellobillforge.ai@gmail.com</a>.</p>
+        </article>
+      </section>
+      <section class="page legal-page" id="termsPage" data-page="terms">
+        <div class="page-title">
+          <p class="eyebrow">Legal</p>
+          <h1>Terms & Conditions</h1>
+          <p>Last updated: June 1, 2026</p>
+        </div>
+        <article class="legal-card">
+          <h2>Use Of Service</h2>
+          <p>BillForge provides business tools such as invoice generation, receipt generation, quotation generation, calculators, and trackers. You agree to use the website only for lawful purposes.</p>
+          <h2>Account Responsibility</h2>
+          <p>You are responsible for keeping your login details safe and for all activity under your account.</p>
+          <h2>PDF Limits</h2>
+          <p>Each monthly plan includes either a fixed PDF generation limit or unlimited PDF generation access for 30 days, according to the plan rules shown on the Pricing page.</p>
+          <h2>Accuracy</h2>
+          <p>Calculators provide simple estimates. Tax, GST, ROI, profit, and cash flow results should be checked with a qualified professional before business or legal decisions.</p>
+          <h2>Contact</h2>
+          <p>For support, email <a href="mailto:hellobillforge.ai@gmail.com">hellobillforge.ai@gmail.com</a>.</p>
+        </article>
+      </section>
+      <section class="page legal-page" id="refundPage" data-page="refund">
+        <div class="page-title">
+          <p class="eyebrow">Legal</p>
+          <h1>Refund Policy</h1>
+          <p>Last updated: June 1, 2026</p>
+        </div>
+        <article class="legal-card">
+          <h2>Digital Monthly Plans</h2>
+          <p>BillForge monthly plans are digital services that unlock PDF generation limits for a 30-day access period. Once a plan is activated and used, refunds may not be available.</p>
+          <h2>Duplicate Or Failed Payments</h2>
+          <p>If you are charged twice or payment succeeds but your monthly plan is not activated, contact us with your payment ID and account email.</p>
+          <h2>Refund Review Time</h2>
+          <p>Eligible refund requests will be reviewed within 5-7 business days. Approved refunds will be processed through the original payment method where possible.</p>
+          <h2>Contact</h2>
+          <p>For refund requests, email <a href="mailto:hellobillforge.ai@gmail.com">hellobillforge.ai@gmail.com</a>.</p>
+        </article>
+      </section>
+    </main>
+    <script src="script.js?v=20260603-templatefix"></script>
+  </body>
+</html>
