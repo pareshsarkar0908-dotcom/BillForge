@@ -115,7 +115,11 @@ drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile"
 on public.profiles for update
 using (auth.uid() = id)
-with check (auth.uid() = id);
+with check (
+  auth.uid() = id
+  AND plan_id = (select plan_id from public.profiles where id = auth.uid())
+  AND pdf_used = (select pdf_used from public.profiles where id = auth.uid())
+);
 
 drop policy if exists "Users can insert own profile" on public.profiles;
 create policy "Users can insert own profile"
@@ -396,3 +400,37 @@ drop policy if exists "Admin can read all document history" on public.document_h
 create policy "Admin can read all document history"
 on public.document_history for select
 using (auth.jwt() ->> 'email' = 'pareshsarkar0908@gmail.com');
+
+-- Data deletion requests
+create table if not exists public.data_deletion_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  email text,
+  requested_at timestamptz not null default now(),
+  status text not null default 'pending'
+);
+
+alter table public.data_deletion_requests enable row level security;
+
+drop policy if exists "Users can insert own deletion request" on public.data_deletion_requests;
+create policy "Users can insert own deletion request"
+on public.data_deletion_requests for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can read own deletion request" on public.data_deletion_requests;
+create policy "Users can read own deletion request"
+on public.data_deletion_requests for select
+using (auth.uid() = user_id);
+
+-- Atomic PDF increment (called by server-side API only via service role)
+create or replace function public.increment_pdf_used(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  update public.profiles
+  set pdf_used = pdf_used + 1, updated_at = now()
+  where id = p_user_id;
+end;
+$$;

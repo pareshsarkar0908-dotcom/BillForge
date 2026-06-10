@@ -36,12 +36,20 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied' });
       gtag('js', new Date());
       gtag('config', 'G-ZZKHXGPR7S');
       gtag('config', 'AW-18200043019');
     </script>
   </head>
   <body>
+    <div class="cookie-banner hidden" id="cookieBanner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+      <p>We use cookies for analytics to improve BillForge. You can accept or decline.</p>
+      <div class="cookie-actions">
+        <button class="primary-btn" id="cookieAccept" type="button">Accept</button>
+        <button type="button" id="cookieDecline">Decline</button>
+      </div>
+    </div>
     <header class="site-header">
       <a class="brand" href="#dashboard" data-page-link="dashboard" aria-label="BillForge dashboard">
         <span class="brand-mark">B</span>
@@ -214,11 +222,11 @@ hello@brightworks.example
                 <legend>Branding</legend>
                 <label>
                   Company logo
-                  <input id="businessLogoUpload" name="businessLogoUpload" type="file" accept="image/*" />
+                  <input id="businessLogoUpload" name="businessLogoUpload" type="file" accept="image/png,image/jpeg,image/webp" />
                 </label>
                 <label>
                   Signature image
-                  <input id="signatureUpload" name="signatureUpload" type="file" accept="image/*" />
+                  <input id="signatureUpload" name="signatureUpload" type="file" accept="image/png,image/jpeg,image/webp" />
                 </label>
                 <label>
                   Brand color
@@ -626,7 +634,7 @@ Pune, India</textarea>
             <form class="auth-form" id="createForm">
               <label>Name <input id="createName" type="text" autocomplete="name" required /></label>
               <label>Email <input id="createEmail" type="email" autocomplete="email" required /></label>
-              <label>Password <input id="createPassword" type="password" autocomplete="new-password" minlength="6" required /></label>
+              <label>Password <input id="createPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
               <button class="primary-btn" type="submit">Create Account</button>
             </form>
             <div class="auth-links">
@@ -650,8 +658,8 @@ Pune, India</textarea>
             <h1>Create New Password</h1>
             <p>Enter a new password for your BillForge account.</p>
             <form class="auth-form" id="resetForm">
-              <label>New password <input id="resetPassword" type="password" autocomplete="new-password" minlength="6" required /></label>
-              <label>Confirm password <input id="resetPasswordConfirm" type="password" autocomplete="new-password" minlength="6" required /></label>
+              <label>New password <input id="resetPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
+              <label>Confirm password <input id="resetPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required /></label>
               <button class="primary-btn" type="submit">Update Password</button>
             </form>
             <div class="auth-links">
@@ -685,11 +693,11 @@ Pune, India</textarea>
             <p><strong>Data stored securely with Supabase.</strong></p>
             <p>For support, billing help, custom setup, or payment questions, email us at <a href="mailto:hellobillforge.ai@gmail.com">hellobillforge.ai@gmail.com</a>.</p>
           </article>
-          <form class="contact-form">
-            <label>Name <input type="text" value="Green Leaf Cafe" /></label>
-            <label>Email <input type="email" value="customer@example.com" /></label>
-            <label>Message <textarea rows="5">I need a branded invoice and expense tracker for my shop.</textarea></label>
-            <button class="primary-btn" type="button">Send Request</button>
+          <form class="contact-form" id="contactForm">
+            <label>Name <input id="contactName" type="text" autocomplete="name" required /></label>
+            <label>Email <input id="contactEmail" type="email" autocomplete="email" required /></label>
+            <label>Message <textarea id="contactMessage" rows="5" required></textarea></label>
+            <button class="primary-btn" id="contactSubmit" type="submit">Send Request</button>
           </form>
         </div>
         <div class="faq-grid">

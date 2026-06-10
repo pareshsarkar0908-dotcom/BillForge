@@ -777,7 +777,66 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+const COOKIE_CONSENT_KEY = "bf_cookie_consent";
+const LOGIN_ATTEMPT_KEY = "bf_login_attempts";
+const LOGIN_LOCKOUT_KEY = "bf_login_lockout";
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS = 5 * 60 * 1000;
+
+function hasCookieConsent() {
+  return localStorage.getItem(COOKIE_CONSENT_KEY) === "granted";
+}
+
+function grantCookieConsent() {
+  localStorage.setItem(COOKIE_CONSENT_KEY, "granted");
+  if (typeof window.gtag === "function") {
+    window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+  }
+  document.getElementById("cookieBanner")?.classList.add("hidden");
+}
+
+function denyCookieConsent() {
+  localStorage.setItem(COOKIE_CONSENT_KEY, "denied");
+  document.getElementById("cookieBanner")?.classList.add("hidden");
+}
+
+function initCookieConsent() {
+  const existing = localStorage.getItem(COOKIE_CONSENT_KEY);
+  if (!existing) {
+    document.getElementById("cookieBanner")?.classList.remove("hidden");
+  } else if (existing === "granted" && typeof window.gtag === "function") {
+    window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+  }
+  document.getElementById("cookieAccept")?.addEventListener("click", grantCookieConsent);
+  document.getElementById("cookieDecline")?.addEventListener("click", denyCookieConsent);
+}
+
+function getLoginAttempts() {
+  try { return JSON.parse(localStorage.getItem(LOGIN_ATTEMPT_KEY) || "0"); } catch { return 0; }
+}
+
+function recordLoginFailure() {
+  const attempts = getLoginAttempts() + 1;
+  localStorage.setItem(LOGIN_ATTEMPT_KEY, String(attempts));
+  if (attempts >= MAX_LOGIN_ATTEMPTS) {
+    localStorage.setItem(LOGIN_LOCKOUT_KEY, String(Date.now() + LOGIN_LOCKOUT_MS));
+  }
+}
+
+function clearLoginAttempts() {
+  localStorage.removeItem(LOGIN_ATTEMPT_KEY);
+  localStorage.removeItem(LOGIN_LOCKOUT_KEY);
+}
+
+function isLoginLockedOut() {
+  const until = parseInt(localStorage.getItem(LOGIN_LOCKOUT_KEY) || "0", 10);
+  if (until && Date.now() < until) return true;
+  if (until) clearLoginAttempts();
+  return false;
+}
+
 function trackEvent(name, params = {}) {
+  if (!hasCookieConsent()) return;
   if (typeof window.gtag === "function") {
     window.gtag("event", name, {
       event_category: "BillForge",
@@ -2195,8 +2254,8 @@ async function handleCreateAccount(event) {
     setAuthMessage("Enter name, email, and password.");
     return;
   }
-  if (password.length < 6) {
-    setAuthMessage("Password must be at least 6 characters.");
+  if (password.length < 8) {
+    setAuthMessage("Password must be at least 8 characters.");
     return;
   }
 
@@ -2266,6 +2325,11 @@ async function handleLogin(event) {
     return;
   }
 
+  if (isLoginLockedOut()) {
+    setAuthMessage("Too many failed attempts. Please wait 5 minutes before trying again.");
+    return;
+  }
+
   if (submitButton) submitButton.disabled = true;
   setAuthMessage("Logging in...");
 
@@ -2277,6 +2341,7 @@ async function handleLogin(event) {
         15000
       );
       if (error) {
+        recordLoginFailure();
         setAuthMessage(
           error.message === "Invalid login credentials"
             ? "Invalid login credentials. If this account was just created, check the password or use forgot password."
@@ -2284,13 +2349,16 @@ async function handleLogin(event) {
         );
         return;
       }
+      clearLoginAttempts();
       state.user = data.user;
     } else {
       const account = localAccount();
       if (!account || account.email !== email || account.password !== password) {
+        recordLoginFailure();
         setAuthMessage("Demo login failed. Create an account first, or add Supabase keys.");
         return;
       }
+      clearLoginAttempts();
       account.loggedIn = true;
       saveLocalAccount(account);
       state.user = { id: email, email };
@@ -2333,8 +2401,8 @@ async function handleResetPassword(event) {
   const submitButton = event.submitter || document.querySelector("#resetForm button[type='submit']");
   const password = document.querySelector("#resetPassword")?.value || "";
   const confirmPassword = document.querySelector("#resetPasswordConfirm")?.value || "";
-  if (password.length < 6) {
-    setAuthMessage("Password must be at least 6 characters.");
+  if (password.length < 8) {
+    setAuthMessage("Password must be at least 8 characters.");
     return;
   }
   if (password !== confirmPassword) {
@@ -2497,6 +2565,15 @@ async function startPayment(planId) {
           if (!verifyResponse.ok || !verification.verified) {
             throw new Error(verification.error || "Payment verification failed.");
           }
+          const activateRes = await fetch("/api/activate-plan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...response, userId: state.user.id, planId }),
+          });
+          const activation = await activateRes.json().catch(() => ({}));
+          if (!activateRes.ok) {
+            throw new Error(activation.error || "Plan activation failed. Contact support.");
+          }
           await activatePlan(planId, response);
         } catch (error) {
           const message = `Payment could not be verified: ${error.message}`;
@@ -2557,23 +2634,37 @@ async function canGeneratePdf() {
 async function generatePdf() {
   const allowed = await canGeneratePdf();
   if (!allowed) return;
-  state.pendingPdfCharge = true;
-  window.print();
-}
 
-async function confirmPdfGenerated() {
-  if (!state.pendingPdfCharge) return;
-  state.pendingPdfCharge = false;
+  if (state.user && supabaseClient) {
+    try {
+      const res = await fetch("/api/increment-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: state.user.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAuthMessage(data.error || "Could not record PDF usage. Try again.");
+        return;
+      }
+      state.pdfUsed = data.pdf_used ?? state.pdfUsed + 1;
+      updateAccountUi();
+    } catch (err) {
+      setAuthMessage("Could not record PDF usage. Check your connection.");
+      return;
+    }
+  }
 
-  state.pdfUsed += 1;
-  await saveProfile();
-  updateAccountUi();
-  setAuthMessage("PDF usage recorded.");
   trackEvent("pdf_generated", {
     doc_type: state.docType,
     template: fields.templateStyle.value,
     plan_id: state.planId,
   });
+  window.print();
+}
+
+async function confirmPdfGenerated() {
+  setAuthMessage("PDF generated.");
 }
 
 function handleSampleAction() {
@@ -2858,3 +2949,13 @@ if (!isResetRequest()) {
 }
 initializeAuth();
 initPasswordResetView();
+initCookieConsent();
+
+document.querySelector("#contactForm")?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = document.querySelector("#contactName")?.value.trim() || "";
+  const email = document.querySelector("#contactEmail")?.value.trim() || "";
+  const message = document.querySelector("#contactMessage")?.value.trim() || "";
+  if (!name || !email || !message) return;
+  window.location.href = `mailto:hellobillforge.ai@gmail.com?subject=${encodeURIComponent("BillForge Contact: " + name)}&body=${encodeURIComponent("Name: " + name + "\nEmail: " + email + "\n\n" + message)}`;
+});
